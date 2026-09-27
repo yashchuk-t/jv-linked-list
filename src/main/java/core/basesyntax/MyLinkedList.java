@@ -8,18 +8,6 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
     private Node<T> last;
     private int size;
 
-    private class Node<E> {
-        private E item;
-        private Node<E> next;
-        private Node<E> prev;
-
-        Node(Node<E> prev, E element, Node<E> next) {
-            this.item = element;
-            this.next = next;
-            this.prev = prev;
-        }
-    }
-
     @Override
     public void add(T value) {
         Node<T> newNode = new Node<>(last, value, null);
@@ -43,12 +31,7 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
             return;
         }
 
-        Node<T> current = first;
-
-        for (int step = 0; step < index; step++) {
-            current = current.next;
-        }
-
+        Node<T> current = findNodeByIndex(index);
         Node<T> previous = current.prev;
         Node<T> newNode = new Node<>(previous, value, current);
 
@@ -72,12 +55,7 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
     @Override
     public T get(int index) {
         checkIndex(index);
-
-        Node<T> current = first;
-        for (int step = 0; step < index; step++) {
-            current = current.next;
-        }
-
+        Node<T> current = findNodeByIndex(index);
         return current.item;
     }
 
@@ -85,10 +63,7 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
     public T set(T value, int index) {
         checkIndex(index);
 
-        Node<T> current = first;
-        for (int step = 0; step < index; step++) {
-            current = current.next;
-        }
+        Node<T> current = findNodeByIndex(index);
         T oldValue = current.item;
         current.item = value;
         return oldValue;
@@ -97,28 +72,9 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
     @Override
     public T remove(int index) {
         checkIndex(index);
-
-        Node<T> current = first;
-        for (int step = 0; step < index; step++) {
-            current = current.next;
-        }
-
+        Node<T> current = findNodeByIndex(index);
         T oldValue = current.item;
-
-        if (current.next == null && current.prev == null) {
-            first = null;
-            last = null;
-        } else if (current.prev == null) {
-            current.next.prev = null;
-            first = current.next;
-        } else if (current.next == null) {
-            current.prev.next = null;
-            last = current.prev;
-        } else {
-            current.prev.next = current.next;
-            current.next.prev = current.prev;
-        }
-        size--;
+        unlink(current);
         return oldValue;
     }
 
@@ -129,21 +85,7 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
         while (current != null) {
             if ((current.item == null && object == null)
                     || (current.item != null && current.item.equals(object))) {
-                if (current.next == null && current.prev == null) {
-                    first = null;
-                    last = null;
-                } else if (current.prev == null) {
-                    current.next.prev = null;
-                    first = current.next;
-                } else if (current.next == null) {
-                    current.prev.next = null;
-                    last = current.prev;
-                } else {
-                    current.prev.next = current.next;
-                    current.next.prev = current.prev;
-                }
-
-                size--;
+                unlink(current);
                 return true;
             }
             current = current.next;
@@ -172,6 +114,55 @@ public class MyLinkedList<T> implements MyLinkedListInterface<T> {
         if (index < 0 || index > this.size) {
             throw new IndexOutOfBoundsException(
                     "Index out of bounds: " + index);
+        }
+    }
+
+    private Node<T> findNodeByIndex(int index) {
+        if (index < size / 2) {
+            Node<T> current = first;
+
+            for (int step = 0; step < index; step++) {
+                current = current.next;
+            }
+
+            return current;
+        }
+
+        Node<T> current = last;
+
+        for (int step = size - 1; step > index; step--) {
+            current = current.prev;
+        }
+
+        return current;
+    }
+
+    private void unlink(Node<T> node) {
+        if (node.next == null && node.prev == null) {
+            first = null;
+            last = null;
+        } else if (node.prev == null) {
+            node.next.prev = null;
+            first = node.next;
+        } else if (node.next == null) {
+            node.prev.next = null;
+            last = node.prev;
+        } else {
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+        }
+        size--;
+    }
+
+    private class Node<E> {
+        private E item;
+        private Node<E> next;
+        private Node<E> prev;
+
+        Node(Node<E> prev, E element, Node<E> next) {
+            this.item = element;
+            this.next = next;
+            this.prev = prev;
         }
     }
 }
